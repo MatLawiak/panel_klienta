@@ -1,0 +1,106 @@
+"use client"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabase/client"
+import { AdminShell } from "@/components/admin-shell"
+
+const TP = {
+  orange: "#eb5d1c", dark: "#1d1d1b", white: "#ffffff",
+  gray: "#5d6970", border: "#c1c8cd", green: "#209b84",
+  fontBody: "var(--font-body,'IBM Plex Sans',sans-serif)",
+  fontHeading: "var(--font-heading,'Alata',sans-serif)",
+}
+
+type Job = {
+  id: string
+  source: string
+  status: string
+  rows_synced: number
+  error_message: string | null
+  finished_at: string | null
+  started_at: string
+  clients: { name: string } | null
+}
+
+export default function SyncPage() {
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
+
+  async function load() {
+    const { data } = await supabase
+      .from("sync_jobs")
+      .select("*, clients(name)")
+      .order("started_at", { ascending: false })
+      .limit(50)
+    setJobs((data as Job[]) ?? [])
+    setLoading(false)
+  }
+  useEffect(() => { load() }, [])
+
+  const fmtDate = (s: string | null) =>
+    s ? new Date(s).toLocaleString("pl-PL", { dateStyle: "short", timeStyle: "short" }) : "—"
+
+  return (
+    <AdminShell>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+        <div>
+          <h2 style={{ fontFamily: TP.fontHeading, fontSize: "26px", fontWeight: 400, color: TP.dark, margin: 0 }}>
+            Synchronizacja
+          </h2>
+          <p style={{ fontSize: "13px", color: TP.gray, margin: "4px 0 0" }}>
+            Historia automatycznych synchronizacji danych z API (n8n)
+          </p>
+        </div>
+        <button onClick={() => { setLoading(true); load() }} style={{
+          background: "transparent", border: `1.5px solid ${TP.border}`, borderRadius: "8px",
+          padding: "9px 18px", fontSize: "13px", fontWeight: 500, color: TP.dark,
+          cursor: "pointer", fontFamily: TP.fontBody,
+        }}>
+          ⟳ Odśwież
+        </button>
+      </div>
+
+      {loading ? (
+        <p style={{ color: TP.gray, fontFamily: TP.fontBody }}>Ładowanie…</p>
+      ) : jobs.length === 0 ? (
+        <div style={{ background: TP.white, border: `1.5px dashed ${TP.border}`, borderRadius: "12px", padding: "48px 24px", textAlign: "center" }}>
+          <p style={{ fontSize: "15px", fontWeight: 600, color: TP.dark, margin: "0 0 6px" }}>Brak synchronizacji</p>
+          <p style={{ fontSize: "13px", color: TP.gray, margin: 0 }}>
+            Gdy workflow n8n uruchomi się po raz pierwszy, pojawią się tutaj wpisy.
+          </p>
+        </div>
+      ) : (
+        <div style={{ background: TP.white, border: `1.5px solid ${TP.border}`, borderRadius: "12px", overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", fontFamily: TP.fontBody }}>
+            <thead>
+              <tr style={{ background: "#f9f5f0", textAlign: "left" }}>
+                {["Klient", "Źródło", "Status", "Wiersze", "Zakończono"].map(h => (
+                  <th key={h} style={{ padding: "12px 18px", fontWeight: 600, color: TP.dark, fontSize: "12px", letterSpacing: "0.04em", textTransform: "uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map((j, i) => (
+                <tr key={j.id} style={{ borderTop: `1px solid ${TP.border}`, background: i % 2 ? "#fff" : "#fdfbf9" }}>
+                  <td style={{ padding: "12px 18px", color: TP.dark, fontWeight: 500 }}>{j.clients?.name ?? "—"}</td>
+                  <td style={{ padding: "12px 18px", color: TP.gray, textTransform: "uppercase", fontSize: "12px" }}>{j.source}</td>
+                  <td style={{ padding: "12px 18px" }}>
+                    <span style={{
+                      display: "inline-flex", alignItems: "center", gap: "6px",
+                      padding: "3px 10px", borderRadius: "6px", fontSize: "12px", fontWeight: 600,
+                      background: j.status === "success" ? "rgba(32,155,132,0.10)" : "rgba(235,93,28,0.10)",
+                      color: j.status === "success" ? TP.green : "#c94d14",
+                    }}>
+                      {j.status === "success" ? "✓ OK" : "✕ Błąd"}
+                    </span>
+                  </td>
+                  <td style={{ padding: "12px 18px", color: TP.dark }}>{j.rows_synced}</td>
+                  <td style={{ padding: "12px 18px", color: TP.gray }}>{fmtDate(j.finished_at ?? j.started_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </AdminShell>
+  )
+}
