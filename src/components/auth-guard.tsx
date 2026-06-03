@@ -7,9 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 type Props = {
   children: React.ReactNode
   requireAdmin?: boolean
+  /** Na trasach klienta: admin jest automatycznie przenoszony do swojego panelu. */
+  redirectAdminToPanel?: boolean
 }
 
-export function AuthGuard({ children, requireAdmin = false }: Props) {
+export function AuthGuard({ children, requireAdmin = false, redirectAdminToPanel = false }: Props) {
   const { profile, loading, isAdmin } = useUser()
   const router = useRouter()
 
@@ -17,7 +19,8 @@ export function AuthGuard({ children, requireAdmin = false }: Props) {
     if (loading) return
     if (!profile) { router.replace('/login'); return }
     if (requireAdmin && !isAdmin) { router.replace('/dashboard'); return }
-  }, [profile, loading, isAdmin, requireAdmin, router])
+    if (redirectAdminToPanel && isAdmin) { router.replace('/admin/clients'); return }
+  }, [profile, loading, isAdmin, requireAdmin, redirectAdminToPanel, router])
 
   if (loading) return (
     <div className="p-8 space-y-4 max-w-4xl mx-auto">

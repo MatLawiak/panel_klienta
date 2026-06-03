@@ -17,9 +17,8 @@ const TP = {
 }
 
 const NAV = [
+  // Kampanie i metryki zarządza się per klient — w karcie klienta (zakładki).
   { href: "/admin/clients", label: "Klienci", icon: "◈" },
-  { href: "/admin/campaigns", label: "Kampanie", icon: "◉" },
-  { href: "/admin/metrics", label: "Metryki", icon: "◎" },
   { href: "/admin/sync", label: "Synchronizacja", icon: "⟳" },
 ]
 

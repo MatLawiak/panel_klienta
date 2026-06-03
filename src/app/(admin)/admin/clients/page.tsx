@@ -175,7 +175,7 @@ export default function AdminClientsPage() {
               transition: "box-shadow 0.15s",
               cursor: "pointer",
             }}
-              onClick={() => router.push(`/admin/clients/${client.id}`)}
+              onClick={() => router.push(`/admin/clients/detail?id=${client.id}`)}
               onMouseEnter={e => (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.08)")}
               onMouseLeave={e => (e.currentTarget.style.boxShadow = "none")}
             >

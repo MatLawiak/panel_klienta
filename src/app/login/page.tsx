@@ -14,19 +14,31 @@ export default function LoginPage() {
     setError(null)
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
+    if (error || !data.session) {
       setError("Nieprawidłowy email lub hasło.")
       setLoading(false)
       return
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single()
+    // Odczyt roli JAWNYM tokenem ze świeżej sesji. createBrowserClient (@supabase/ssr)
+    // tuż po signIn potrafi nie dołączyć jeszcze tokena do zapytania (wyścig) —
+    // wtedy rola wraca null i admin ląduje na /dashboard. Jawny Bearer to eliminuje.
+    let role: string | null = null
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?select=role&id=eq.${data.user.id}`,
+        {
+          headers: {
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            Authorization: `Bearer ${data.session.access_token}`,
+          },
+        },
+      )
+      const rows = await res.json()
+      role = Array.isArray(rows) && rows[0] ? rows[0].role : null
+    } catch { /* przy błędzie sieci wpadnie do panelu klienta — bezpieczny domyślny */ }
 
-    window.location.assign(profile?.role === "admin" ? "/admin/clients" : "/dashboard")
+    window.location.assign(role === "admin" ? "/admin/clients" : "/dashboard")
   }
 
   return (

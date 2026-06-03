@@ -3,7 +3,16 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { useUser } from "@/hooks/use-user"
 
-type Kpi = { leads: number; spend: number; clicks: number; cpl: number }
+type CampaignKpi = {
+  id: string
+  name: string
+  source: string
+  is_lead_gen: boolean
+  leads: number
+  spend: number
+  clicks: number
+  cpl: number
+}
 
 const TP = {
   orange: "#eb5d1c",
@@ -20,7 +29,7 @@ const TP = {
 export default function DashboardPage() {
   const { profile } = useUser()
   const [clientName, setClientName] = useState<string | null>(null)
-  const [kpi, setKpi] = useState<Kpi | null>(null)
+  const [rows, setRows] = useState<CampaignKpi[] | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -32,20 +41,49 @@ export default function DashboardPage() {
       if (!clients?.[0]) { setLoading(false); return }
       setClientName(clients[0].name)
 
+      // Tylko kampanie widoczne dla klienta (RLS ogranicza do jego klienta)
+      const { data: camps } = await supabase
+        .from("campaigns")
+        .select("id, name, source, is_lead_gen")
+        .eq("visible", true)
+
+      const list = camps ?? []
+      if (!list.length) { setRows([]); setLoading(false); return }
+
       const since = new Date(Date.now() - 30 * 86400_000).toISOString().slice(0, 10)
       const { data: metrics } = await supabase
         .from("campaign_metrics_daily")
-        .select("spend, clicks, leads, campaigns!inner(client_id, visible)")
-        .eq("campaigns.visible", true)
+        .select("campaign_id, spend, clicks, leads")
         .gte("date", since)
+        .in("campaign_id", list.map(c => c.id))
 
-      if (metrics) {
-        const t = metrics.reduce(
-          (acc, m: any) => ({ spend: acc.spend + Number(m.spend), clicks: acc.clicks + m.clicks, leads: acc.leads + m.leads }),
-          { spend: 0, clicks: 0, leads: 0 }
-        )
-        setKpi({ ...t, cpl: t.leads ? t.spend / t.leads : 0 })
+      // Sumowanie OSOBNO dla każdej kampanii
+      const agg = new Map<string, { leads: number; spend: number; clicks: number }>()
+      for (const m of (metrics ?? []) as any[]) {
+        const a = agg.get(m.campaign_id) ?? { leads: 0, spend: 0, clicks: 0 }
+        a.spend  += Number(m.spend)
+        a.clicks += m.clicks
+        a.leads  += m.leads
+        agg.set(m.campaign_id, a)
       }
+
+      const result: CampaignKpi[] = list
+        .map(c => {
+          const a = agg.get(c.id) ?? { leads: 0, spend: 0, clicks: 0 }
+          return {
+            id: c.id,
+            name: c.name,
+            source: (c as any).source ?? "meta",
+            is_lead_gen: (c as any).is_lead_gen ?? false,
+            leads: a.leads,
+            spend: a.spend,
+            clicks: a.clicks,
+            cpl: a.leads ? a.spend / a.leads : 0,
+          }
+        })
+        .sort((x, y) => y.spend - x.spend)
+
+      setRows(result)
       setLoading(false)
     })()
   }, [profile])
@@ -117,19 +155,56 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* KPI Grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "40px" }}>
-          {loading ? Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} style={{ height: "130px", background: "#e0dbd4", borderRadius: "12px", animation: "pulse 1.5s ease infinite" }} />
-          )) : kpi ? (
-            <>
-              <KpiCard label="Leady" value={String(kpi.leads)} accent={TP.orange} />
-              <KpiCard label="Koszt za leada (CPL)" value={kpi.cpl > 0 ? fmt(kpi.cpl) : "—"} accent={TP.green} />
-              <KpiCard label="Kliknięcia" value={kpi.clicks.toLocaleString("pl-PL")} accent="#5d6970" />
-              <KpiCard label="Wydatki" value={fmt(kpi.spend)} accent={TP.dark} />
-            </>
+        {/* Wyniki — OSOBNO dla każdej kampanii */}
+        <div style={{ display: "grid", gap: "20px", marginBottom: "40px" }}>
+          {loading ? (
+            Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} style={{ height: "160px", background: "#e0dbd4", borderRadius: "14px", animation: "pulse 1.5s ease infinite" }} />
+            ))
+          ) : rows && rows.length ? (
+            rows.map(c => (
+              <section key={c.id} style={{
+                background: TP.white,
+                borderRadius: "14px",
+                border: `1.5px solid ${TP.border}`,
+                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                overflow: "hidden",
+              }}>
+                {/* Nazwa kampanii */}
+                <div style={{
+                  display: "flex", alignItems: "center", gap: "12px",
+                  padding: "18px 24px", borderBottom: `1px solid ${TP.border}`,
+                  background: "rgba(235,93,28,0.03)",
+                }}>
+                  <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: TP.green, flexShrink: 0 }} />
+                  <h2 style={{ margin: 0, fontFamily: TP.fontHeading, fontSize: "19px", fontWeight: 400, color: TP.dark }}>
+                    {c.name}
+                  </h2>
+                  {c.is_lead_gen && (
+                    <span style={{
+                      fontSize: "11px", fontWeight: 600, color: TP.orange,
+                      background: "rgba(235,93,28,0.10)", borderRadius: "6px", padding: "3px 8px",
+                      textTransform: "uppercase", letterSpacing: "0.04em",
+                    }}>
+                      Lead Ads
+                    </span>
+                  )}
+                </div>
+
+                {/* Metryki tej kampanii */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1px", background: TP.border }}>
+                  <Metric label="Leady" value={String(c.leads)} accent={TP.orange} />
+                  <Metric label="Koszt za leada (CPL)" value={c.cpl > 0 ? fmt(c.cpl) : "—"} accent={TP.green} />
+                  <Metric label="Kliknięcia" value={c.clicks.toLocaleString("pl-PL")} accent={TP.gray} />
+                  <Metric label="Wydatki" value={fmt(c.spend)} accent={TP.dark} />
+                </div>
+              </section>
+            ))
           ) : (
-            <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "48px", color: TP.gray, fontSize: "15px" }}>
+            <div style={{
+              background: TP.white, borderRadius: "14px", border: `1.5px solid ${TP.border}`,
+              textAlign: "center", padding: "48px", color: TP.gray, fontSize: "15px",
+            }}>
               Brak danych. Skontaktuj się z agencją.
             </div>
           )}
@@ -158,33 +233,26 @@ export default function DashboardPage() {
   )
 }
 
-function KpiCard({ label, value, accent }: { label: string; value: string; accent: string }) {
+function Metric({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <div style={{
-      background: "#ffffff",
-      borderRadius: "12px",
-      border: "1.5px solid #c1c8cd",
-      padding: "24px",
-      borderTop: `3px solid ${accent}`,
-      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-    }}>
+    <div style={{ background: TP.white, padding: "20px 24px", borderTop: `3px solid ${accent}` }}>
       <p style={{
-        margin: "0 0 10px 0",
+        margin: "0 0 8px 0",
         fontSize: "11px",
         fontWeight: 600,
         textTransform: "uppercase",
         letterSpacing: "0.08em",
-        color: "#5d6970",
-        fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
+        color: TP.gray,
+        fontFamily: TP.fontBody,
       }}>
         {label}
       </p>
       <p style={{
         margin: 0,
-        fontSize: "32px",
+        fontSize: "26px",
         fontWeight: 600,
-        color: "#1d1d1b",
-        fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
+        color: TP.dark,
+        fontFamily: TP.fontBody,
         lineHeight: 1.1,
       }}>
         {value}

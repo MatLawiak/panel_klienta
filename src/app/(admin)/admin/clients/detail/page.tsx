@@ -1,6 +1,6 @@
 "use client"
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase/client"
 import { AdminShell } from "@/components/admin-shell"
@@ -40,7 +40,16 @@ const TP = {
 type Tab = "campaigns" | "users" | "metrics"
 
 export default function ClientDetailPage() {
-  const { id } = useParams<{ id: string }>()
+  return (
+    <Suspense fallback={<AdminShell><p style={{ color: TP.gray, fontFamily: TP.fontBody }}>Ładowanie…</p></AdminShell>}>
+      <ClientDetailInner />
+    </Suspense>
+  )
+}
+
+function ClientDetailInner() {
+  const params  = useSearchParams()
+  const id      = params.get("id") ?? ""
   const router  = useRouter()
 
   const [client, setClient]       = useState<Client | null>(null)
@@ -75,7 +84,7 @@ export default function ClientDetailPage() {
     setCampaigns((camps as Campaign[]) ?? [])
     setLoading(false)
   }
-  useEffect(() => { load() }, [id])
+  useEffect(() => { if (id) load() }, [id])
 
   /* Dodaj kampanię */
   async function addCampaign() {
@@ -119,10 +128,11 @@ export default function ClientDetailPage() {
       return
     }
     setSyncing(true)
-    setSyncMsg("Pobieranie kampanii z Meta…")
+    setSyncMsg("Pobieranie kampanii z Meta… pierwszy sync może potrwać do ~1,5 min.")
 
     const base = process.env.NEXT_PUBLIC_N8N_WEBHOOK_BASE
     const secret = process.env.NEXT_PUBLIC_N8N_SECRET || ""
+    const startedAt = new Date().toISOString()
     try {
       // no-cors: żądanie dociera do n8n, odpowiedź jest nieczytelna — i tak pollujemy bazę
       await fetch(`${base}/sync-meta-now`, {
@@ -133,20 +143,31 @@ export default function ClientDetailPage() {
       })
     } catch { /* no-cors zawsze "ok" z perspektywy JS */ }
 
-    // Poll: odświeżaj listę kampanii aż się pojawią (maks ~25s)
-    const before = campaigns.length
-    for (let i = 0; i < 12; i++) {
-      await new Promise(r => setTimeout(r, 2200))
+    // Poll: czekaj na świeży wpis w sync_jobs dla tego klienta (maks ~100s).
+    // Niezawodne także przy re-syncu (gdy liczba kampanii się nie zmienia).
+    let done = false
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 2500))
+      const { data: jobs } = await supabase
+        .from("sync_jobs")
+        .select("status, rows_synced, error_message, finished_at")
+        .eq("client_id", id)
+        .gte("finished_at", startedAt)
+        .order("finished_at", { ascending: false })
+        .limit(1)
+      const job = jobs?.[0]
+      if (!job) continue
+
       const { data } = await supabase.from("campaigns").select("*").eq("client_id", id).order("created_at", { ascending: false })
       const list = (data as Campaign[]) ?? []
-      if (list.length > before || i === 11) {
-        setCampaigns(list)
-        setSyncMsg(list.length > before
-          ? `Zsynchronizowano. Kampanii: ${list.length}.`
-          : "Sync zakończony. Jeśli brak kampanii — sprawdź ID konta i token Meta.")
-        break
-      }
+      setCampaigns(list)
+      setSyncMsg(job.status === "error"
+        ? `Błąd synchronizacji: ${job.error_message ?? "nieznany"}`
+        : `Zsynchronizowano. Pobranych wierszy: ${job.rows_synced}. Kampanii: ${list.length}.`)
+      done = true
+      break
     }
+    if (!done) setSyncMsg("Synchronizacja trwa dłużej niż zwykle — odśwież stronę za chwilę, dane powinny już być.")
     setSyncing(false)
   }
 
