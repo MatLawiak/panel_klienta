@@ -10,5 +10,5 @@ export default function RootPage() {
       router.replace(user ? '/dashboard' : '/login')
     })
   }, [router])
-  return null
+  return <div style={{ minHeight: "100vh", background: "#16151a" }} />
 }

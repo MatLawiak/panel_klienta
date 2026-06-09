@@ -26,14 +26,19 @@ function makeAdminClient(accessToken: string) {
   })
 }
 
+// Ciemny motyw — spójny z audyt.twistedpixel.pl
 const TP = {
   orange: "#eb5d1c",
-  dark:   "#1d1d1b",
-  cream:  "#f9f5f0",
-  white:  "#ffffff",
-  gray:   "#5d6970",
-  border: "#c1c8cd",
   green:  "#209b84",
+  card:   "#242220",
+  cardAlt:"#1f1d1b",
+  elevated: "#2e2b27",
+  inputBg:"#1c1b1f",
+  border: "#38352f",
+  borderLight: "#52504d",
+  text:   "#f0ece6",
+  textSec:"#9a948d",
+  white:  "#ffffff",
   fontBody:    "var(--font-body,'IBM Plex Sans',sans-serif)",
   fontHeading: "var(--font-heading,'Alata',sans-serif)",
 }
@@ -42,7 +47,7 @@ type Tab = "campaigns" | "users" | "metrics"
 
 export default function ClientDetailPage() {
   return (
-    <Suspense fallback={<AdminShell><p style={{ color: TP.gray, fontFamily: TP.fontBody }}>Ładowanie…</p></AdminShell>}>
+    <Suspense fallback={<AdminShell><p style={{ color: TP.textSec, fontFamily: TP.fontBody }}>Ładowanie…</p></AdminShell>}>
       <ClientDetailInner />
     </Suspense>
   )
@@ -233,39 +238,38 @@ function ClientDetailInner() {
     setMetricSaving(false)
   }
 
-  if (loading) return <AdminShell><p style={{ color: TP.gray, fontFamily: TP.fontBody }}>Ładowanie…</p></AdminShell>
-  if (!client) return <AdminShell><p style={{ color: TP.gray, fontFamily: TP.fontBody }}>Nie znaleziono klienta.</p></AdminShell>
+  if (loading) return <AdminShell><p style={{ color: TP.textSec, fontFamily: TP.fontBody }}>Ładowanie…</p></AdminShell>
+  if (!client) return <AdminShell><p style={{ color: TP.textSec, fontFamily: TP.fontBody }}>Nie znaleziono klienta.</p></AdminShell>
 
   return (
     <AdminShell>
       {/* Breadcrumb */}
-      <button onClick={() => router.push("/admin/clients")} style={{ background: "none", border: "none", color: TP.gray, fontSize: "13px", cursor: "pointer", fontFamily: TP.fontBody, padding: "0 0 20px", display: "flex", alignItems: "center", gap: "6px" }}>
+      <button onClick={() => router.push("/admin/clients")} style={{ background: "none", border: "none", color: TP.textSec, fontSize: "13px", cursor: "pointer", fontFamily: TP.fontBody, padding: "0 0 20px", display: "flex", alignItems: "center", gap: "6px" }}>
         <ArrowLeft size={15} /> Klienci
       </button>
 
       {/* Nagłówek klienta */}
       <div style={{ display: "flex", alignItems: "center", gap: "18px", marginBottom: "32px" }}>
-        <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "rgba(235,93,28,0.10)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: TP.fontHeading, fontSize: "24px", color: TP.orange }}>
+        <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "rgba(235,93,28,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: TP.fontHeading, fontSize: "24px", color: TP.orange }}>
           {client.name.charAt(0)}
         </div>
         <div>
-          <h2 style={{ fontFamily: TP.fontHeading, fontSize: "26px", fontWeight: 400, color: TP.dark, margin: 0 }}>{client.name}</h2>
-          <p style={{ fontSize: "13px", color: TP.gray, margin: "4px 0 0" }}>
+          <h2 style={{ fontFamily: TP.fontHeading, fontSize: "26px", fontWeight: 400, color: TP.text, margin: 0 }}>{client.name}</h2>
+          <p style={{ fontSize: "13px", color: TP.textSec, margin: "4px 0 0" }}>
             {[client.google_ads_customer_id && "Google Ads", client.meta_ad_account_id && "Meta Ads", client.ga4_property_id && "GA4"].filter(Boolean).join(" · ") || "Brak integracji"}
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: "4px", marginBottom: "28px", background: "#f0ece6", borderRadius: "10px", padding: "4px", width: "fit-content" }}>
+      <div style={{ display: "flex", gap: "4px", marginBottom: "28px", background: TP.cardAlt, border: `1px solid ${TP.border}`, borderRadius: "10px", padding: "4px", width: "fit-content" }}>
         {([ ["campaigns","Kampanie"], ["users","Dostęp klienta"], ["metrics","Metryki ręczne"] ] as [Tab, string][]).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)} style={{
-            background: tab === t ? TP.white : "transparent",
+            background: tab === t ? TP.elevated : "transparent",
             border: "none", borderRadius: "8px",
             padding: "8px 18px", fontSize: "13px", fontWeight: tab === t ? 600 : 400,
-            color: tab === t ? TP.dark : TP.gray,
+            color: tab === t ? TP.text : TP.textSec,
             cursor: "pointer", fontFamily: TP.fontBody,
-            boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.10)" : "none",
             transition: "all 0.15s",
           }}>
             {label}
@@ -276,19 +280,19 @@ function ClientDetailInner() {
       {/* TAB: Kampanie */}
       {tab === "campaigns" && (
         <div>
-          <p style={{ fontSize: "14px", color: TP.gray, margin: "0 0 16px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "14px", color: TP.textSec, margin: "0 0 16px", lineHeight: 1.6 }}>
             Zaznacz kampanie, które klient ma widzieć w swoim panelu. Odznaczone kampanie
             są synchronizowane, ale nie wliczają się do wyników klienta.
           </p>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
             <div style={{ display: "flex", gap: "8px" }}>
               <button onClick={() => setAllVisible(true)} style={chipBtn}>Zaznacz wszystkie</button>
               <button onClick={() => setAllVisible(false)} style={chipBtn}>Odznacz wszystkie</button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <span style={{ fontSize: "12px", color: TP.gray }}>
-                Widoczne: <b style={{ color: TP.dark }}>{campaigns.filter(c => c.visible).length}</b> / {campaigns.length}
+              <span style={{ fontSize: "12px", color: TP.textSec }}>
+                Widoczne: <b style={{ color: TP.text }}>{campaigns.filter(c => c.visible).length}</b> / {campaigns.length}
               </span>
               {client?.meta_ad_account_id && (
                 <button onClick={syncMetaNow} disabled={syncing} style={{
@@ -300,7 +304,7 @@ function ClientDetailInner() {
                   {syncing ? "Synchronizuję…" : "Pobierz kampanie z Meta"}
                 </button>
               )}
-              <button onClick={() => setCampModal(true)} style={{ background: TP.dark, color: TP.white, border: "none", borderRadius: "8px", padding: "9px 18px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: TP.fontBody }}>
+              <button onClick={() => setCampModal(true)} style={{ background: TP.elevated, color: TP.text, border: `1px solid ${TP.border}`, borderRadius: "8px", padding: "9px 18px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: TP.fontBody }}>
                 + Dodaj kampanię
               </button>
             </div>
@@ -309,7 +313,7 @@ function ClientDetailInner() {
           {syncMsg && (
             <div style={{
               marginBottom: "16px", padding: "10px 14px", borderRadius: "8px", fontSize: "13px",
-              background: "rgba(32,155,132,0.08)", color: TP.green, border: "1px solid rgba(32,155,132,0.25)",
+              background: "rgba(32,155,132,0.12)", color: TP.green, border: "1px solid rgba(32,155,132,0.3)",
             }}>
               {syncMsg}
             </div>
@@ -321,11 +325,11 @@ function ClientDetailInner() {
             <div style={{ display: "grid", gap: "10px" }}>
               {campaigns.map(c => (
                 <div key={c.id} style={{
-                  background: TP.white,
-                  border: `1.5px solid ${c.visible ? "rgba(235,93,28,0.35)" : TP.border}`,
+                  background: TP.card,
+                  border: `1px solid ${c.visible ? "rgba(235,93,28,0.45)" : TP.border}`,
                   borderRadius: "12px", padding: "14px 18px",
                   display: "flex", alignItems: "center", justifyContent: "space-between",
-                  opacity: c.visible ? 1 : 0.6, transition: "all 0.15s",
+                  opacity: c.visible ? 1 : 0.55, transition: "all 0.15s",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                     {/* Toggle */}
@@ -334,27 +338,27 @@ function ClientDetailInner() {
                       title={c.visible ? "Widoczna dla klienta — kliknij aby ukryć" : "Ukryta — kliknij aby pokazać"}
                       style={{
                         width: "44px", height: "26px", borderRadius: "13px", border: "none",
-                        background: c.visible ? TP.orange : TP.border, cursor: "pointer",
+                        background: c.visible ? TP.orange : TP.borderLight, cursor: "pointer",
                         position: "relative", transition: "background 0.2s", flexShrink: 0,
                       }}
                     >
                       <span style={{
                         position: "absolute", top: "3px", left: c.visible ? "21px" : "3px",
                         width: "20px", height: "20px", borderRadius: "50%", background: "#fff",
-                        transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                        transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.5)",
                       }} />
                     </button>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: c.status === "ACTIVE" ? TP.green : TP.border, flexShrink: 0 }} />
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: c.status === "ACTIVE" ? TP.green : TP.borderLight, flexShrink: 0 }} />
                     <div>
-                      <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: TP.dark }}>{c.name}</p>
-                      <p style={{ margin: "2px 0 0", fontSize: "12px", color: TP.gray }}>
+                      <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: TP.text }}>{c.name}</p>
+                      <p style={{ margin: "2px 0 0", fontSize: "12px", color: TP.textSec }}>
                         {c.source} {c.is_lead_gen && "· Lead Ads"}
                       </p>
                     </div>
                   </div>
-                  <button onClick={() => deleteCampaign(c.id)} style={{ background: "none", border: "none", color: TP.border, fontSize: "13px", cursor: "pointer", fontFamily: TP.fontBody }}
-                    onMouseEnter={e => (e.currentTarget.style.color = "#c94d14")}
-                    onMouseLeave={e => (e.currentTarget.style.color = TP.border)}
+                  <button onClick={() => deleteCampaign(c.id)} style={{ background: "none", border: "none", color: TP.textSec, fontSize: "13px", cursor: "pointer", fontFamily: TP.fontBody }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "#e8734a")}
+                    onMouseLeave={e => (e.currentTarget.style.color = TP.textSec)}
                   >Usuń</button>
                 </div>
               ))}
@@ -366,7 +370,7 @@ function ClientDetailInner() {
       {/* TAB: Dostęp klienta */}
       {tab === "users" && (
         <div style={{ maxWidth: "480px" }}>
-          <p style={{ fontSize: "14px", color: TP.gray, marginBottom: "24px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "14px", color: TP.textSec, marginBottom: "24px", lineHeight: 1.6 }}>
             Utwórz konto dla klienta. Otrzyma email z danymi do logowania lub możesz mu przekazać hasło bezpośrednio.
           </p>
           <div style={{ display: "grid", gap: "14px" }}>
@@ -383,7 +387,7 @@ function ClientDetailInner() {
       {/* TAB: Metryki ręczne */}
       {tab === "metrics" && (
         <div style={{ maxWidth: "520px" }}>
-          <p style={{ fontSize: "14px", color: TP.gray, marginBottom: "24px", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "14px", color: TP.textSec, marginBottom: "24px", lineHeight: 1.6 }}>
             Wprowadź metryki ręcznie — gdy automatyczny sync z API nie jest jeszcze aktywny.
           </p>
           <div style={{ display: "grid", gap: "14px" }}>
@@ -402,7 +406,7 @@ function ClientDetailInner() {
             </div>
           </div>
           {metricMsg && <Msg text={metricMsg} ok={!metricMsg.startsWith("Błąd")} />}
-          <button onClick={addMetrics} disabled={metricSaving} style={{ marginTop: "20px", background: TP.dark, color: TP.white, border: "none", borderRadius: "8px", padding: "11px 24px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: TP.fontBody }}>
+          <button onClick={addMetrics} disabled={metricSaving} style={{ marginTop: "20px", background: TP.elevated, color: TP.text, border: `1px solid ${TP.border}`, borderRadius: "8px", padding: "11px 24px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: TP.fontBody }}>
             {metricSaving ? "Zapisywanie…" : "Zapisz metryki"}
           </button>
         </div>
@@ -410,10 +414,10 @@ function ClientDetailInner() {
 
       {/* Modal: dodaj kampanię */}
       {campModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(29,29,27,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "24px" }}
           onClick={e => { if (e.target === e.currentTarget) setCampModal(false) }}>
-          <div style={{ background: TP.white, borderRadius: "16px", width: "100%", maxWidth: "460px", padding: "36px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
-            <h3 style={{ fontFamily: TP.fontHeading, fontSize: "20px", fontWeight: 400, color: TP.dark, margin: "0 0 22px" }}>Nowa kampania</h3>
+          <div style={{ background: TP.card, border: `1px solid ${TP.border}`, borderRadius: "16px", width: "100%", maxWidth: "460px", padding: "36px", boxShadow: "0 20px 60px rgba(0,0,0,0.55)" }}>
+            <h3 style={{ fontFamily: TP.fontHeading, fontSize: "20px", fontWeight: 400, color: TP.text, margin: "0 0 22px" }}>Nowa kampania</h3>
             <div style={{ display: "grid", gap: "14px" }}>
               <FormField label="Nazwa kampanii *" value={campForm.name} onChange={v => setCampForm(f => ({ ...f, name: v }))} placeholder="np. Kampania leadowa Q2" />
               <div>
@@ -425,13 +429,13 @@ function ClientDetailInner() {
                 </select>
               </div>
               <FormField label="Cel kampanii" value={campForm.objective} onChange={v => setCampForm(f => ({ ...f, objective: v }))} placeholder="np. LEAD_GENERATION" />
-              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: TP.dark, cursor: "pointer", fontFamily: TP.fontBody }}>
-                <input type="checkbox" checked={campForm.is_lead_gen} onChange={e => setCampForm(f => ({ ...f, is_lead_gen: e.target.checked }))} />
+              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: TP.text, cursor: "pointer", fontFamily: TP.fontBody }}>
+                <input type="checkbox" checked={campForm.is_lead_gen} onChange={e => setCampForm(f => ({ ...f, is_lead_gen: e.target.checked }))} style={{ accentColor: TP.orange }} />
                 Kampania Lead Ads (formularz)
               </label>
             </div>
             <div style={{ display: "flex", gap: "10px", marginTop: "24px", justifyContent: "flex-end" }}>
-              <button onClick={() => setCampModal(false)} style={{ background: "transparent", border: `1.5px solid ${TP.border}`, borderRadius: "8px", padding: "10px 18px", fontSize: "13px", color: TP.gray, cursor: "pointer", fontFamily: TP.fontBody }}>Anuluj</button>
+              <button onClick={() => setCampModal(false)} style={{ background: "transparent", border: `1px solid ${TP.border}`, borderRadius: "8px", padding: "10px 18px", fontSize: "13px", color: TP.textSec, cursor: "pointer", fontFamily: TP.fontBody }}>Anuluj</button>
               <button onClick={addCampaign} disabled={campSaving} style={{ background: TP.orange, color: TP.white, border: "none", borderRadius: "8px", padding: "10px 22px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: TP.fontBody }}>
                 {campSaving ? "Dodawanie…" : "Dodaj kampanię"}
               </button>
@@ -444,9 +448,9 @@ function ClientDetailInner() {
 }
 
 /* ── helpers UI ── */
-const labelStyle: React.CSSProperties = { display: "block", fontSize: "12px", fontWeight: 600, color: "#1d1d1b", marginBottom: "6px", letterSpacing: "0.04em", textTransform: "uppercase", fontFamily: "var(--font-body,'IBM Plex Sans',sans-serif)" }
-const chipBtn: React.CSSProperties = { background: "transparent", border: "1.5px solid #c1c8cd", borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: 500, color: "#5d6970", cursor: "pointer", fontFamily: "var(--font-body,'IBM Plex Sans',sans-serif)" }
-const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1.5px solid #c1c8cd", fontFamily: "var(--font-body,'IBM Plex Sans',sans-serif)", fontSize: "14px", color: "#1d1d1b", outline: "none", boxSizing: "border-box", background: "#fff" }
+const labelStyle: React.CSSProperties = { display: "block", fontSize: "12px", fontWeight: 600, color: "#f0ece6", marginBottom: "6px", letterSpacing: "0.04em", textTransform: "uppercase", fontFamily: "var(--font-body,'IBM Plex Sans',sans-serif)" }
+const chipBtn: React.CSSProperties = { background: "transparent", border: "1px solid #38352f", borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: 500, color: "#9a948d", cursor: "pointer", fontFamily: "var(--font-body,'IBM Plex Sans',sans-serif)" }
+const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid #38352f", fontFamily: "var(--font-body,'IBM Plex Sans',sans-serif)", fontSize: "14px", color: "#f0ece6", outline: "none", boxSizing: "border-box", background: "#1c1b1f" }
 
 function FormField({ label, value, onChange, placeholder, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string }) {
   return (
@@ -454,23 +458,23 @@ function FormField({ label, value, onChange, placeholder, type = "text" }: { lab
       <label style={labelStyle}>{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={inputStyle}
         onFocus={e => (e.target.style.borderColor = "#eb5d1c")}
-        onBlur={e => (e.target.style.borderColor = "#c1c8cd")} />
+        onBlur={e => (e.target.style.borderColor = "#38352f")} />
     </div>
   )
 }
 
 function Empty({ label, sub }: { label: string; sub: string }) {
   return (
-    <div style={{ background: "#fff", border: "1.5px dashed #c1c8cd", borderRadius: "12px", padding: "48px 24px", textAlign: "center" }}>
-      <p style={{ fontSize: "15px", fontWeight: 600, color: "#1d1d1b", margin: "0 0 6px" }}>{label}</p>
-      <p style={{ fontSize: "13px", color: "#5d6970", margin: 0 }}>{sub}</p>
+    <div style={{ background: "#242220", border: "1px dashed #38352f", borderRadius: "12px", padding: "48px 24px", textAlign: "center" }}>
+      <p style={{ fontSize: "15px", fontWeight: 600, color: "#f0ece6", margin: "0 0 6px" }}>{label}</p>
+      <p style={{ fontSize: "13px", color: "#9a948d", margin: 0 }}>{sub}</p>
     </div>
   )
 }
 
 function Msg({ text, ok }: { text: string; ok: boolean }) {
   return (
-    <div style={{ marginTop: "14px", padding: "10px 14px", borderRadius: "8px", fontSize: "13px", background: ok ? "rgba(32,155,132,0.08)" : "rgba(235,93,28,0.08)", color: ok ? "#209b84" : "#c94d14", border: `1px solid ${ok ? "rgba(32,155,132,0.25)" : "rgba(235,93,28,0.3)"}` }}>
+    <div style={{ marginTop: "14px", padding: "10px 14px", borderRadius: "8px", fontSize: "13px", background: ok ? "rgba(32,155,132,0.12)" : "rgba(235,93,28,0.12)", color: ok ? "#209b84" : "#f6b090", border: `1px solid ${ok ? "rgba(32,155,132,0.3)" : "rgba(235,93,28,0.35)"}` }}>
       {text}
     </div>
   )

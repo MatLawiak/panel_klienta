@@ -4,6 +4,17 @@ import { supabase } from "@/lib/supabase/client"
 import { BrandBackground } from "@/components/brand-background"
 import { ArrowRight } from "lucide-react"
 
+const TP = {
+  orange: "#eb5d1c",
+  bg: "#16151a",
+  card: "#242220",
+  border: "#38352f",
+  text: "#f0ece6",
+  textSec: "#9a948d",
+  fontBody: "var(--font-body, 'IBM Plex Sans', sans-serif)",
+  fontHeading: "var(--font-heading, 'Alata', sans-serif)",
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -43,10 +54,28 @@ export default function LoginPage() {
     window.location.assign(role === "admin" ? "/admin/clients" : "/dashboard")
   }
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "13px 16px",
+    borderRadius: "10px",
+    border: `1.5px solid ${TP.border}`,
+    fontFamily: TP.fontBody,
+    fontSize: "15px",
+    color: TP.text,
+    background: "#1c1b1f",
+    outline: "none",
+    boxSizing: "border-box",
+    transition: "border-color 0.2s",
+  }
+  const labelStyle: React.CSSProperties = {
+    display: "block", fontFamily: TP.fontBody, fontSize: "13px",
+    fontWeight: 600, color: TP.text, marginBottom: "8px", letterSpacing: "0.02em",
+  }
+
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#f9f5f0",
+      background: TP.bg,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -54,28 +83,15 @@ export default function LoginPage() {
       position: "relative",
     }}>
       <BrandBackground />
-      {/* Logo + karta */}
+
       <div style={{ width: "100%", maxWidth: "420px", position: "relative", zIndex: 1 }}>
 
-        {/* Logo obszar */}
+        {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <img src="/logo-twistedpixel.png" alt="Twisted Pixel" style={{ height: "64px", width: "auto" }} />
           <div style={{
-            fontFamily: "var(--font-heading, 'Alata', sans-serif)",
-            fontSize: "28px",
-            fontWeight: "400",
-            color: "#1d1d1b",
-            letterSpacing: "-0.01em",
-            marginBottom: "4px",
-          }}>
-            Twisted<span style={{ color: "#eb5d1c" }}>Pixel</span>
-          </div>
-          <div style={{
-            fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-            fontSize: "13px",
-            color: "#5d6970",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            fontWeight: "500",
+            fontFamily: TP.fontBody, fontSize: "13px", color: TP.textSec,
+            letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 500, marginTop: "10px",
           }}>
             Panel wyników kampanii
           </div>
@@ -83,151 +99,66 @@ export default function LoginPage() {
 
         {/* Karta logowania */}
         <div style={{
-          background: "#ffffff",
+          background: TP.card,
           borderRadius: "16px",
-          border: "1.5px solid #c1c8cd",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+          border: `1px solid ${TP.border}`,
+          boxShadow: "0 10px 32px rgba(0,0,0,0.45)",
           padding: "40px 36px",
         }}>
-          <h1 style={{
-            fontFamily: "var(--font-heading, 'Alata', sans-serif)",
-            fontSize: "22px",
-            fontWeight: "400",
-            color: "#1d1d1b",
-            margin: "0 0 28px 0",
-          }}>
+          <h1 style={{ fontFamily: TP.fontHeading, fontSize: "22px", fontWeight: 400, color: TP.text, margin: "0 0 28px 0" }}>
             Zaloguj się
           </h1>
 
           <form onSubmit={handleLogin}>
-            {/* Email */}
             <div style={{ marginBottom: "18px" }}>
-              <label style={{
-                display: "block",
-                fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "#1d1d1b",
-                marginBottom: "8px",
-                letterSpacing: "0.02em",
-              }}>
-                Email
-              </label>
+              <label style={labelStyle}>Email</label>
               <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="twoj@email.pl"
-                required
-                style={{
-                  width: "100%",
-                  padding: "13px 16px",
-                  borderRadius: "10px",
-                  border: "1.5px solid #c1c8cd",
-                  fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-                  fontSize: "15px",
-                  color: "#1d1d1b",
-                  background: "#fff",
-                  outline: "none",
-                  boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-                onFocus={e => e.target.style.borderColor = "#eb5d1c"}
-                onBlur={e => e.target.style.borderColor = "#c1c8cd"}
+                type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="twoj@email.pl" required style={inputStyle}
+                onFocus={e => e.target.style.borderColor = TP.orange}
+                onBlur={e => e.target.style.borderColor = TP.border}
               />
             </div>
 
-            {/* Hasło */}
             <div style={{ marginBottom: "24px" }}>
-              <label style={{
-                display: "block",
-                fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "#1d1d1b",
-                marginBottom: "8px",
-                letterSpacing: "0.02em",
-              }}>
-                Hasło
-              </label>
+              <label style={labelStyle}>Hasło</label>
               <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                style={{
-                  width: "100%",
-                  padding: "13px 16px",
-                  borderRadius: "10px",
-                  border: "1.5px solid #c1c8cd",
-                  fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-                  fontSize: "15px",
-                  color: "#1d1d1b",
-                  background: "#fff",
-                  outline: "none",
-                  boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-                onFocus={e => e.target.style.borderColor = "#eb5d1c"}
-                onBlur={e => e.target.style.borderColor = "#c1c8cd"}
+                type="password" value={password} onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••" required style={inputStyle}
+                onFocus={e => e.target.style.borderColor = TP.orange}
+                onBlur={e => e.target.style.borderColor = TP.border}
               />
             </div>
 
-            {/* Błąd */}
             {error && (
               <div style={{
-                background: "rgba(235,93,28,0.08)",
-                border: "1px solid rgba(235,93,28,0.3)",
-                borderRadius: "8px",
-                padding: "10px 14px",
-                marginBottom: "20px",
-                fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-                fontSize: "14px",
-                color: "#c94d14",
+                background: "rgba(235,93,28,0.10)", border: "1px solid rgba(235,93,28,0.35)",
+                borderRadius: "8px", padding: "10px 14px", marginBottom: "20px",
+                fontFamily: TP.fontBody, fontSize: "14px", color: "#f6b090",
               }}>
                 {error}
               </div>
             )}
 
-            {/* Przycisk */}
             <button
-              type="submit"
-              disabled={loading}
+              type="submit" disabled={loading}
               style={{
-                width: "100%",
-                padding: "14px 24px",
-                borderRadius: "10px",
-                border: "none",
-                background: loading ? "#c1c8cd" : "#1d1d1b",
-                color: "#ffffff",
-                fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-                fontSize: "15px",
-                fontWeight: "600",
+                width: "100%", padding: "14px 24px", borderRadius: "10px", border: "none",
+                background: loading ? TP.border : "#0e0d11",
+                color: TP.text, fontFamily: TP.fontBody, fontSize: "15px", fontWeight: 600,
                 cursor: loading ? "not-allowed" : "pointer",
-                transition: "background 0.2s, transform 0.15s",
-                letterSpacing: "0.01em",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
+                transition: "background 0.2s, transform 0.15s", letterSpacing: "0.01em",
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px",
               }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#eb5d1c" }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#1d1d1b" }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = TP.orange }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#0e0d11" }}
             >
               {loading ? "Logowanie…" : <>Zaloguj się <ArrowRight size={17} /></>}
             </button>
           </form>
         </div>
 
-        {/* Footer */}
-        <div style={{
-          textAlign: "center",
-          marginTop: "24px",
-          fontFamily: "var(--font-body, 'IBM Plex Sans', sans-serif)",
-          fontSize: "12px",
-          color: "#5d6970",
-        }}>
+        <div style={{ textAlign: "center", marginTop: "24px", fontFamily: TP.fontBody, fontSize: "12px", color: TP.textSec }}>
           Twisted Pixel © {new Date().getFullYear()}
         </div>
       </div>
