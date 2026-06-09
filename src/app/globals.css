@@ -177,3 +177,49 @@
   font-weight: 600;
   letter-spacing: 0.04em;
 }
+
+/* ── Animacje ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+@keyframes tp-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.tp-fade-up { animation: tp-fade-up 0.4s ease both; }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Dekoracyjne kształty (sygnet TwistedPixel = obrócony kwadrat) ── */
+.tp-decor {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.tp-decor span {
+  position: absolute;
+  display: block;
+  border-radius: 14px;
+  transform: rotate(45deg);
+}
+
+/* ── Dostępność: widoczny focus-ring na klawiaturze ── */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(235, 93, 28, 0.35);
+  border-radius: 8px;
+}
+
+/* ── Szacunek dla preferencji ograniczenia ruchu ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

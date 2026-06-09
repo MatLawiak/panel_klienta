@@ -3,6 +3,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { supabase } from "@/lib/supabase/client"
+import { Users, RefreshCw, LogOut, PanelLeftClose, PanelLeft, type LucideIcon } from "lucide-react"
 
 const TP = {
   orange: "#eb5d1c",
@@ -16,10 +17,10 @@ const TP = {
   fontHeading: "var(--font-heading,'Alata',sans-serif)",
 }
 
-const NAV = [
+const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   // Kampanie i metryki zarządza się per klient — w karcie klienta (zakładki).
-  { href: "/admin/clients", label: "Klienci", icon: "◈" },
-  { href: "/admin/sync", label: "Synchronizacja", icon: "⟳" },
+  { href: "/admin/clients", label: "Klienci", icon: Users },
+  { href: "/admin/sync", label: "Synchronizacja", icon: RefreshCw },
 ]
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -63,9 +64,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: "16px", padding: "4px", lineHeight: 1, flexShrink: 0 }}
+            aria-label={sidebarOpen ? "Zwiń menu" : "Rozwiń menu"}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: "4px", lineHeight: 1, flexShrink: 0, display: "inline-flex" }}
           >
-            {sidebarOpen ? "‹" : "›"}
+            {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
         </div>
 
@@ -73,6 +75,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <nav style={{ flex: 1, padding: "12px 0" }}>
           {NAV.map(item => {
             const active = pathname.startsWith(item.href)
+            const Icon = item.icon
             return (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
                 <div style={{
@@ -90,7 +93,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   whiteSpace: "nowrap",
                   cursor: "pointer",
                 }}>
-                  <span style={{ fontSize: "16px", flexShrink: 0 }}>{item.icon}</span>
+                  <Icon size={18} style={{ flexShrink: 0 }} />
                   {sidebarOpen && item.label}
                 </div>
               </Link>
@@ -122,7 +125,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.8)")}
             onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
           >
-            <span style={{ fontSize: "16px", flexShrink: 0 }}>→</span>
+            <LogOut size={18} style={{ flexShrink: 0 }} />
             {sidebarOpen && "Wyloguj"}
           </button>
         </div>

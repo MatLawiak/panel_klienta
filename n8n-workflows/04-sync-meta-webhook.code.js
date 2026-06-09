@@ -41,6 +41,32 @@ const sumActions = (arr, types) => {
   let t = 0; for (const a of (arr || [])) if (types.includes(a.action_type)) t += parseFloat(a.value || 0); return t;
 };
 
+// "Konwersja" = WYNIK kampanii wg jej celu (jak kolumna "Wyniki" w Meta Ads Manager).
+// Dzieki temu kampania ruchowa nie pokazuje absurdalnego kosztu za 1 przypadkowy lead —
+// jej wynikiem sa np. wyswietlenia strony docelowej, a nie leady.
+const resultActionTypes = (objective) => {
+  const o = String(objective || '').toUpperCase();
+  if (o.includes('LEAD'))
+    return ['onsite_conversion.lead_grouped', 'lead', 'offsite_conversion.fb_pixel_lead'];
+  if (o.includes('SALE') || o.includes('CONVERSION') || o.includes('PURCHASE'))
+    return ['offsite_conversion.fb_pixel_purchase', 'onsite_conversion.purchase', 'offsite_conversion.fb_pixel_lead', 'onsite_conversion.lead_grouped', 'lead'];
+  if (o.includes('TRAFFIC') || o.includes('LINK_CLICK'))
+    return ['landing_page_view', 'link_click'];
+  if (o.includes('ENGAGEMENT') || o.includes('MESSAG'))
+    return ['onsite_conversion.messaging_conversation_started_7d', 'onsite_conversion.total_messaging_connection', 'post_engagement', 'link_click'];
+  if (o.includes('AWARENESS') || o.includes('REACH') || o.includes('VIDEO') || o.includes('IMPRESSION'))
+    return []; // brak sensownej konwersji -> 0
+  return ['onsite_conversion.lead_grouped', 'lead', 'offsite_conversion.fb_pixel_lead'];
+};
+// Pierwsza obecna akcja z listy priorytetow — bez podwojnego liczenia tego samego zdarzenia.
+const firstActionValue = (arr, types) => {
+  for (const t of types) {
+    const a = (arr || []).find(x => x.action_type === t);
+    if (a) return parseFloat(a.value || 0);
+  }
+  return 0;
+};
+
 let url = SB + '/rest/v1/clients?select=id,name,meta_ad_account_id&meta_ad_account_id=not.is.null';
 if (onlyClientId) url += '&id=eq.' + encodeURIComponent(onlyClientId);
 
@@ -69,12 +95,14 @@ for (const c of clients) {
         let cpl = sumActions(r.cost_per_action_type, LEAD_ACTIONS);
         const spend = parseFloat(r.spend || 0);
         if (!cpl && leads) cpl = spend / leads;
+        const conversions = Math.round(firstActionValue(r.actions, resultActionTypes(r.objective)));
         rows.push({
           external_id: r.campaign_id, name: r.campaign_name, objective: r.objective || null,
           is_lead_gen: LEAD_OBJECTIVES.includes(r.objective) || leads > 0,
           date: r.date_start, spend: spend,
           impressions: parseInt(r.impressions || 0, 10), clicks: parseInt(r.clicks || 0, 10),
-          leads: Math.round(leads), ctr: r.ctr ? parseFloat(r.ctr) : null,
+          leads: Math.round(leads), conversions: conversions,
+          ctr: r.ctr ? parseFloat(r.ctr) : null,
           cpl: cpl ? Number(cpl.toFixed(2)) : null,
         });
       }

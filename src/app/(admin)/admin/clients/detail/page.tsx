@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { supabase } from "@/lib/supabase/client"
 import { AdminShell } from "@/components/admin-shell"
+import { ArrowLeft, RefreshCw } from "lucide-react"
 import type { Client, Campaign } from "@/lib/supabase/types"
 
 const SB_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -239,7 +240,7 @@ function ClientDetailInner() {
     <AdminShell>
       {/* Breadcrumb */}
       <button onClick={() => router.push("/admin/clients")} style={{ background: "none", border: "none", color: TP.gray, fontSize: "13px", cursor: "pointer", fontFamily: TP.fontBody, padding: "0 0 20px", display: "flex", alignItems: "center", gap: "6px" }}>
-        ← Klienci
+        <ArrowLeft size={15} /> Klienci
       </button>
 
       {/* Nagłówek klienta */}
@@ -293,8 +294,10 @@ function ClientDetailInner() {
                 <button onClick={syncMetaNow} disabled={syncing} style={{
                   background: syncing ? TP.border : TP.orange, color: TP.white, border: "none", borderRadius: "8px",
                   padding: "9px 18px", fontSize: "13px", fontWeight: 600, cursor: syncing ? "wait" : "pointer", fontFamily: TP.fontBody,
+                  display: "inline-flex", alignItems: "center", gap: "7px",
                 }}>
-                  {syncing ? "Synchronizuję…" : "⟳ Pobierz kampanie z Meta"}
+                  <RefreshCw size={14} style={{ animation: syncing ? "spin 1s linear infinite" : "none" }} />
+                  {syncing ? "Synchronizuję…" : "Pobierz kampanie z Meta"}
                 </button>
               )}
               <button onClick={() => setCampModal(true)} style={{ background: TP.dark, color: TP.white, border: "none", borderRadius: "8px", padding: "9px 18px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: TP.fontBody }}>

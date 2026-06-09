@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { AdminShell } from "@/components/admin-shell"
+import { RefreshCw } from "lucide-react"
 
 const TP = {
   orange: "#eb5d1c", dark: "#1d1d1b", white: "#ffffff",
@@ -54,8 +55,9 @@ export default function SyncPage() {
           background: "transparent", border: `1.5px solid ${TP.border}`, borderRadius: "8px",
           padding: "9px 18px", fontSize: "13px", fontWeight: 500, color: TP.dark,
           cursor: "pointer", fontFamily: TP.fontBody,
+          display: "inline-flex", alignItems: "center", gap: "7px",
         }}>
-          ⟳ Odśwież
+          <RefreshCw size={14} /> Odśwież
         </button>
       </div>
 

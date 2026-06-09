@@ -1,6 +1,8 @@
 "use client"
 import { useState } from "react"
 import { supabase } from "@/lib/supabase/client"
+import { BrandBackground } from "@/components/brand-background"
+import { ArrowRight } from "lucide-react"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -49,9 +51,11 @@ export default function LoginPage() {
       alignItems: "center",
       justifyContent: "center",
       padding: "24px",
+      position: "relative",
     }}>
+      <BrandBackground />
       {/* Logo + karta */}
-      <div style={{ width: "100%", maxWidth: "420px" }}>
+      <div style={{ width: "100%", maxWidth: "420px", position: "relative", zIndex: 1 }}>
 
         {/* Logo obszar */}
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
@@ -203,11 +207,15 @@ export default function LoginPage() {
                 cursor: loading ? "not-allowed" : "pointer",
                 transition: "background 0.2s, transform 0.15s",
                 letterSpacing: "0.01em",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
               }}
-              onMouseEnter={e => { if (!loading) (e.target as HTMLButtonElement).style.background = "#eb5d1c" }}
-              onMouseLeave={e => { if (!loading) (e.target as HTMLButtonElement).style.background = "#1d1d1b" }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = "#eb5d1c" }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = "#1d1d1b" }}
             >
-              {loading ? "Logowanie…" : "Zaloguj się →"}
+              {loading ? "Logowanie…" : <>Zaloguj się <ArrowRight size={17} /></>}
             </button>
           </form>
         </div>
